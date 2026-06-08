@@ -1,0 +1,112 @@
+--Q1. Show all video game titles and genres.     
+SELECT title, genre                                       
+FROM GAME_TABLE
+
+--Q2. Find the top 10 highest-selling games.
+SELECT TOP 10 * FROM GAME_TABLE
+ORDER BY total_sales DESC
+
+--Q3. Show all PS4 games.
+SELECT * FROM GAME_TABLE
+WHERE console = 'PS4'
+
+--Q4  Find games with critic score greater than 9.
+SELECT * FROM GAME_TABLE
+WHERE critic_score > 9
+
+--Q5. Count total number of games.
+SELECT COUNT(*) AS TOTAL_GAMES FROM GAME_TABLE 
+
+--Q6. Find average critic score by genre.
+SELECT genre, AVG(CRITIC_SCORE) AS AVG_CRITIC 
+FROM GAME_TABLE
+GROUP BY genre
+
+--Q7. Find total sales by console.
+SELECT console, SUM(TOTAL_SALES) AS TOTAL_SALES 
+FROM GAME_TABLE
+GROUP BY console 
+ORDER BY TOTAL_SALES DESC
+
+--Q8. Find highest-selling publisher.
+SELECT TOP 1 * FROM GAME_TABLE
+ORDER BY total_sales DESC
+
+--Q9. Find top-selling game in each genre.
+SELECT * FROM (
+SELECT title, console, genre, total_sales,
+ROW_NUMBER () OVER (PARTITION BY GENRE ORDER BY TOTAL_SALES DESC) AS RANKS
+FROM GAME_TABLE
+) AS GAME
+WHERE RANKS = 1
+
+--Q10. Find consoles with average sales above 1 million.
+SELECT console, AVG(total_sales) AS AVG_SALE
+FROM GAME_TABLE
+GROUP BY CONSOLE
+HAVING AVG(TOTAL_SALES) > 1
+
+--Q11. Categorize games based on critic score.
+SELECT title, critic_score, 
+CASE 
+WHEN critic_score >= 9 THEN 'Excellent'
+    WHEN critic_score >= 8 THEN 'Good'
+END AS SCORE
+FROM GAME_TABLE
+
+--Q12. Find yearly number of game releases.
+SELECT YEAR(RELEASE_DATE) AS [YEAR] ,COUNT(release_date) AS CNT_GAME 
+FROM GAME_TABLE
+GROUP BY YEAR(RELEASE_DATE)
+ORDER BY YEAR
+
+--13.  Find publisher with highest average critic score.
+SELECT TOP 1 publisher, AVG(critic_score) AS AVG_CRITISCORE
+FROM GAME_TABLE
+GROUP BY publisher
+ORDER BY AVG_CRITISCORE DESC
+
+--Q14. Find genre contributing highest global sales.
+SELECT TOP 1 GENRE, SUM(TOTAL_SALES) AS TOTAL_S
+FROM GAME_TABLE
+GROUP BY genre
+ORDER BY TOTAL_S DESC
+
+--Q15. Find top 3 games for each console.
+select * from(
+SELECT title, console,total_sales,
+row_number()over(partition by console order by total_sales desc) as ranks
+FROM GAME_TABLE
+) as video
+where ranks <= 3
+
+--Q16. Find cumulative sales over time.
+SELECT DISTINCT(release_date), SUM(TOTAL_SALES) OVER (ORDER BY RELEASE_DATE) AS CUMULATIVE_SALES
+FROM GAME_TABLE
+ORDER BY release_date
+
+--Q17. Compare each game's sales with genre average.
+SELECT title,
+genre,
+total_sales,
+AVG(total_sales) OVER(PARTITION BY genre)
+AS genre_avg_sales
+FROM GAME_TABLE
+
+--Q18. Find best-selling game from each publisher.
+SELECT * FROM(
+SELECT TITLE, publisher, total_sales ,
+ROW_NUMBER()OVER(PARTITION BY PUBLISHER ORDER BY TOTAL_SALES DESC) AS RANKS
+FROM GAME_TABLE
+) AS GAME
+WHERE RANKS = 1
+ORDER BY total_sales DESC
+
+--Q19. Find fastest-growing console by yearly sales.
+SELECT console, YEAR(RELEASE_DATE) AS [YEAR], SUM(TOTAL_SALES) AS TOTAL_SALE 
+FROM GAME_TABLE
+GROUP BY console, YEAR(RELEASE_DATE)
+
+--Q20.Divide games into 4 sales quartiles.
+SELECT title, NTILE(4)OVER (ORDER BY TOTAL_SALES) AS QUARILES
+FROM GAME_TABLE
